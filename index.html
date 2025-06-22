@@ -27,6 +27,7 @@
     .contact {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       padding: 10px;
       border-bottom: 1px solid #eee;
       cursor: pointer;
@@ -41,13 +42,21 @@
       border-radius: 50%;
       margin-right: 10px;
     }
+    .contact-info {
+      flex-grow: 1;
+    }
     .contact-name {
       font-weight: bold;
     }
+    .last-message {
+      font-size: 12px;
+      color: #666;
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .unread {
-      position: absolute;
-      right: 15px;
-      top: 15px;
       background: red;
       color: white;
       border-radius: 10px;
@@ -189,7 +198,14 @@
     const div = document.createElement('div');
     div.className = 'contact';
     div.id = `contact-${contact.name}`;
-    div.innerHTML = `<img src="${contact.img}"><div><div class="contact-name">${contact.name}</div><div class="unread" style="display:none;">0</div></div>`;
+    div.innerHTML = `
+      <img src="${contact.img}">
+      <div class="contact-info">
+        <div class="contact-name">${contact.name}</div>
+        <div class="last-message" id="last-${contact.name}">...</div>
+      </div>
+      <div class="unread" style="display:none;">0</div>
+    `;
     div.onclick = () => selectUser(contact);
     sidebar.appendChild(div);
   }
@@ -209,6 +225,9 @@
     contactHeader.innerHTML = `<img src="${user.img}"><b>${user.name}</b>`;
     user.unread = 0;
     updateUnread(user);
+    const lastMsg = user.messages.length ? user.messages[user.messages.length - 1].text : '';
+    const msgPreview = document.getElementById(`last-${user.name}`);
+    if (msgPreview) msgPreview.textContent = lastMsg;
     loadChat();
   }
 
@@ -223,6 +242,8 @@
     addMessage(text, 'you', getTime());
     currentUser.messages.push({ sender: 'you', text, time: getTime() });
     input.value = '';
+    const lastMsg = document.getElementById(`last-${currentUser.name}`);
+    if (lastMsg) lastMsg.textContent = text;
     saveChat();
   }
 
@@ -258,6 +279,8 @@
     ];
     const msg = messages[Math.floor(Math.random() * messages.length)];
     randomContact.messages.push({ sender: 'friend', text: msg, time: getTime() });
+    const lastMsg = document.getElementById(`last-${randomContact.name}`);
+    if (lastMsg) lastMsg.textContent = msg;
     if (currentUser !== randomContact) {
       randomContact.unread++;
       updateUnread(randomContact);
