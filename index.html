@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fake Message Web</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+    }
+
+    #chat {
+      width: 360px;
+      height: 500px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin: 8px 0;
+      padding: 8px 12px;
+      border-radius: 20px;
+      max-width: 70%;
+    }
+
+    .you {
+      background-color: #d1f0ff;
+      align-self: flex-end;
+    }
+
+    .friend {
+      background-color: #e4e4e4;
+      align-self: flex-start;
+    }
+
+    #inputArea {
+      display: flex;
+      margin-top: 10px;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      flex-grow: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 20px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Fake Message Web</h2>
+  <div id="chat"></div>
+
+  <div id="inputArea">
+    <input type="text" id="messageInput" placeholder="Type a message..." />
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="receiveMessage()">Receive</button>
+  </div>
+
+  <script>
+    const chat = document.getElementById('chat');
+
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (text !== '') {
+        addMessage(text, 'you');
+        input.value = '';
+      }
+    }
+
+    function receiveMessage() {
+      const fakeReplies = [
+        "Hey! What's up?",
+        "Lol 😂",
+        "I’ll get back to you.",
+        "That’s cool.",
+        "Are you free later?",
+        "Why did you say that?",
+        "No way!"
+      ];
+      const randomReply = fakeReplies[Math.floor(Math.random() * fakeReplies.length)];
+      addMessage(randomReply, 'friend');
+    }
+
+    function addMessage(text, sender) {
+      const message = document.createElement('div');
+      message.className = `message ${sender}`;
+      message.textContent = text;
+      chat.appendChild(message);
+      chat.scrollTop = chat.scrollHeight;
+    }
+  </script>
+
+</body>
+</html>
