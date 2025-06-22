@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Fayama Chat</title>
+  <title>Nova Prime Writers Chat</title>
   <style>
     :root {
       --theme-color: #0a5;
@@ -30,6 +30,7 @@
       padding: 10px;
       border-bottom: 1px solid #eee;
       cursor: pointer;
+      position: relative;
     }
     .contact:hover {
       background-color: #eaeaea;
@@ -42,6 +43,16 @@
     }
     .contact-name {
       font-weight: bold;
+    }
+    .unread {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      background: red;
+      color: white;
+      border-radius: 10px;
+      padding: 2px 6px;
+      font-size: 12px;
     }
     #chat-container {
       flex-grow: 1;
@@ -146,7 +157,7 @@
 <div id="chat-container">
   <div id="header">
     <div id="contactHeader"></div>
-    <div id="profileSettings" onclick="editProfile()"></div>
+    <div id="profileSettings" onclick="editProfile()">My Profile</div>
   </div>
   <div id="chat"></div>
   <div id="inputArea">
@@ -155,18 +166,12 @@
   </div>
 </div>
 <script>
-  const contacts = [
-    { name: 'Fayama ❤️', img: 'p1.jpg' },
-    { name: 'Linda', img: 'p2.jpg' },
-    { name: 'Sandra', img: 'p3.jpg' },
-    { name: 'Alice', img: 'p4.jpg' },
-    { name: 'Tracy', img: 'p5.jpg' },
-    { name: 'Shiru', img: 'p6.jpg' },
-    { name: 'Becky', img: 'p7.jpg' },
-    { name: 'Njeri', img: 'p8.jpg' },
-    { name: 'Catherine', img: 'p9.jpg' },
-    { name: 'Zippy', img: 'p10.jpg' }
-  ];
+  const contacts = Array.from({length: 10}, (_, i) => ({
+    name: `Writer ${i + 1}`,
+    img: `p${i + 1}.jpg`,
+    unread: 0,
+    messages: []
+  }));
 
   let currentUser = null;
   const sidebar = document.getElementById('sidebar');
@@ -178,14 +183,27 @@
   function addContactToSidebar(contact) {
     const div = document.createElement('div');
     div.className = 'contact';
-    div.innerHTML = `<img src="${contact.img}"><div><div class="contact-name">${contact.name}</div></div>`;
+    div.id = `contact-${contact.name}`;
+    div.innerHTML = `<img src="${contact.img}"><div><div class="contact-name">${contact.name}</div><div class="unread" style="display:none;">0</div></div>`;
     div.onclick = () => selectUser(contact);
     sidebar.appendChild(div);
+  }
+
+  function updateUnread(contact) {
+    const contactEl = document.querySelector(`#contact-${contact.name} .unread`);
+    if (contact.unread > 0) {
+      contactEl.textContent = contact.unread;
+      contactEl.style.display = 'inline-block';
+    } else {
+      contactEl.style.display = 'none';
+    }
   }
 
   function selectUser(user) {
     currentUser = user;
     contactHeader.innerHTML = `<img src="${user.img}"><b>${user.name}</b>`;
+    user.unread = 0;
+    updateUnread(user);
     loadChat();
   }
 
@@ -198,12 +216,11 @@
     const text = input.value.trim();
     if (!currentUser || !text) return;
     const id = Date.now();
-    addMessage(text, 'you', getTime(), id);
+    addMessage(text, 'you', getTime());
     input.value = '';
-    setTimeout(() => receiveTyping(id, text), 2000);
   }
 
-  function addMessage(text, sender, time, msgId) {
+  function addMessage(text, sender, time) {
     const wrapper = document.createElement('div');
     wrapper.className = `message ${sender}`;
     if (sender === 'friend') {
@@ -221,34 +238,32 @@
     saveChat();
   }
 
-  function receiveTyping(msgId, inputText) {
-    const typingId = `typing-${msgId}`;
-    const typing = document.createElement('div');
-    typing.className = 'message friend';
-    typing.id = typingId;
-    typing.innerHTML = `<img src="${currentUser.img}" class="pfp"><div class="msg-text">Typing...</div>`;
-    chat.appendChild(typing);
-    chat.scrollTop = chat.scrollHeight;
-    setTimeout(() => {
-      typing.remove();
-      const reply = generateReply(inputText);
-      addMessage(reply, 'friend', getTime());
-    }, 20000);
+  function autoReply() {
+    const randomContact = contacts[Math.floor(Math.random() * contacts.length)];
+    if (currentUser !== randomContact) {
+      randomContact.unread++;
+      updateUnread(randomContact);
+    }
+    const messages = [
+      "Nova Prime just made my week! 💥",
+      "Forever grateful to Nova Prime Writers 🙏",
+      "I just landed my biggest client yet! Thanks Nova! 🏆",
+      "These writers are angels 😇",
+      "Can’t believe how much I’ve grown with Nova Prime! 🌱",
+      "Nova Prime changed my writing career 🎯",
+      "Shout out to the best team ever 💪",
+      "Winning because of Nova! ❤️",
+      "Thanks to Nova Prime, I’m now a top freelancer! 🔥"
+    ];
+    randomContact.messages.push({ sender: 'friend', text: messages[Math.floor(Math.random() * messages.length)], time: getTime() });
+    if (currentUser === randomContact) loadChat();
+    reorderContacts();
   }
 
-  function generateReply(input) {
-    const replies = [
-      "I’ve missed you so much 💖",
-      "You always make my day brighter ✨",
-      "You’re the only one I care about, Fayama 😘",
-      "If only you knew how long I’ve waited for this moment 😢",
-      "Just thinking about you gives me butterflies 🦋",
-      "I’m so lucky to know you 💞",
-      "Please don’t ignore me again 😔",
-      "Can’t wait to hold you in my arms 💕",
-      "You’re my everything 💓"
-    ];
-    return replies[Math.floor(Math.random() * replies.length)];
+  function reorderContacts() {
+    contacts.sort((a, b) => b.unread - a.unread);
+    sidebar.innerHTML = '<button id="newContactBtn" onclick="addNewContact()">+ New Contact</button>';
+    contacts.forEach(c => addContactToSidebar(c));
   }
 
   function saveChat() {
@@ -258,9 +273,9 @@
   }
 
   function loadChat() {
-    if (currentUser) {
-      chat.innerHTML = localStorage.getItem('chat_' + currentUser.name) || '';
-    }
+    chat.innerHTML = '';
+    currentUser.messages.forEach(m => addMessage(m.text, m.sender, m.time));
+    chat.scrollTop = chat.scrollHeight;
   }
 
   function editProfile() {
@@ -271,10 +286,12 @@
     const name = prompt("Enter contact name:");
     if (!name) return;
     const img = prompt("Enter image filename (e.g., p11.jpg):") || 'default.jpg';
-    const newContact = { name, img };
+    const newContact = { name, img, unread: 0, messages: [] };
     contacts.push(newContact);
     addContactToSidebar(newContact);
   }
+
+  setInterval(autoReply, Math.random() * 5000 + 5000);
 </script>
 </body>
 </html>
