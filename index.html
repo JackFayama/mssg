@@ -166,8 +166,13 @@
   </div>
 </div>
 <script>
-  const contacts = Array.from({length: 10}, (_, i) => ({
-    name: `Writer ${i + 1}`,
+  const kenyanNames = [
+    "Achieng", "Wanjiku", "Njeri", "Atieno", "Nekesa",
+    "Muthoni", "Akinyi", "Chebet", "Moraa", "Naliaka"
+  ];
+
+  const contacts = kenyanNames.map((name, i) => ({
+    name,
     img: `p${i + 1}.jpg`,
     unread: 0,
     messages: []
@@ -215,9 +220,10 @@
     const input = document.getElementById('messageInput');
     const text = input.value.trim();
     if (!currentUser || !text) return;
-    const id = Date.now();
     addMessage(text, 'you', getTime());
+    currentUser.messages.push({ sender: 'you', text, time: getTime() });
     input.value = '';
+    saveChat();
   }
 
   function addMessage(text, sender, time) {
@@ -235,15 +241,10 @@
     wrapper.appendChild(msg);
     chat.appendChild(wrapper);
     chat.scrollTop = chat.scrollHeight;
-    saveChat();
   }
 
   function autoReply() {
     const randomContact = contacts[Math.floor(Math.random() * contacts.length)];
-    if (currentUser !== randomContact) {
-      randomContact.unread++;
-      updateUnread(randomContact);
-    }
     const messages = [
       "Nova Prime just made my week! 💥",
       "Forever grateful to Nova Prime Writers 🙏",
@@ -255,9 +256,16 @@
       "Winning because of Nova! ❤️",
       "Thanks to Nova Prime, I’m now a top freelancer! 🔥"
     ];
-    randomContact.messages.push({ sender: 'friend', text: messages[Math.floor(Math.random() * messages.length)], time: getTime() });
-    if (currentUser === randomContact) loadChat();
+    const msg = messages[Math.floor(Math.random() * messages.length)];
+    randomContact.messages.push({ sender: 'friend', text: msg, time: getTime() });
+    if (currentUser !== randomContact) {
+      randomContact.unread++;
+      updateUnread(randomContact);
+    } else {
+      addMessage(msg, 'friend', getTime());
+    }
     reorderContacts();
+    saveChat();
   }
 
   function reorderContacts() {
@@ -267,15 +275,17 @@
   }
 
   function saveChat() {
-    if (currentUser) {
-      localStorage.setItem('chat_' + currentUser.name, chat.innerHTML);
-    }
+    contacts.forEach(c => {
+      localStorage.setItem('chat_' + c.name, JSON.stringify(c.messages));
+    });
   }
 
   function loadChat() {
     chat.innerHTML = '';
+    if (!currentUser) return;
+    const saved = localStorage.getItem('chat_' + currentUser.name);
+    if (saved) currentUser.messages = JSON.parse(saved);
     currentUser.messages.forEach(m => addMessage(m.text, m.sender, m.time));
-    chat.scrollTop = chat.scrollHeight;
   }
 
   function editProfile() {
