@@ -2,80 +2,73 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Fayama Chat</title>
+  <title>Chat with Fayama</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f4f4f4;
-      padding: 30px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 30px;
     }
-
     #chat {
-      width: 380px;
+      width: 400px;
       height: 500px;
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      overflow-y: auto;
       padding: 10px;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
     }
-
     .message {
       display: flex;
       align-items: flex-end;
       margin: 8px 0;
       max-width: 80%;
     }
-
     .you {
       align-self: flex-end;
-      justify-content: flex-end;
+      flex-direction: row-reverse;
       text-align: right;
     }
-
     .friend {
       align-self: flex-start;
     }
-
     .msg-text {
       padding: 10px 14px;
       border-radius: 20px;
+      background-color: #e4e4e4;
       max-width: 250px;
+      position: relative;
     }
-
     .you .msg-text {
       background-color: #d1f0ff;
     }
-
-    .friend .msg-text {
-      background-color: #e4e4e4;
-      margin-left: 10px;
+    .status {
+      font-size: 10px;
+      margin-top: 2px;
+      text-align: right;
     }
-
     .pfp {
       width: 32px;
       height: 32px;
       border-radius: 50%;
+      margin-right: 8px;
     }
-
     #inputArea {
       display: flex;
       margin-top: 10px;
       gap: 10px;
     }
-
     input[type="text"] {
       flex-grow: 1;
       padding: 10px;
       border-radius: 20px;
       border: 1px solid #ccc;
     }
-
     button {
       padding: 10px 15px;
       border: none;
@@ -84,79 +77,76 @@
       color: white;
       cursor: pointer;
     }
-
     button:hover {
       background: #0056b3;
     }
   </style>
 </head>
 <body>
-
   <h2>Chat with Fayama ❤️</h2>
   <div id="chat"></div>
-
   <div id="inputArea">
-    <input type="text" id="messageInput" placeholder="Type a message..." />
+    <input type="text" id="messageInput" placeholder="Type a message...">
     <button onclick="sendMessage()">Send</button>
   </div>
-
   <script>
     const chat = document.getElementById('chat');
-
-    const hardcodedReplies = {
-      "hello": "Yes Fayama 😊",
-      "hi": "Yes Fayama 😊",
-      "how are you": "I'm well, maybe Youu? 😘",
-      "i love you": "I love you much much more, you that Fayama 💖"
-    };
-
-    const friendPFP = "P1.JPg"; // Profile pic of Fayama
 
     function sendMessage() {
       const input = document.getElementById('messageInput');
       const text = input.value.trim();
       if (text !== '') {
-        addMessage(text, 'you');
+        const id = Date.now();
+        addMessage(text, 'you', id);
         input.value = '';
 
-        const lowerText = text.toLowerCase();
-
-        const matchedKey = Object.keys(hardcodedReplies).find(key => lowerText.includes(key));
-        let replyText;
-
-        if (matchedKey) {
-          replyText = hardcodedReplies[matchedKey];
-        } else {
-          replyText = generateFayamaResponse(lowerText);
-        }
+        setTimeout(() => updateStatus(id, '✓✓', 'blue'), 2000);
 
         setTimeout(() => {
           const typingId = showTyping();
           setTimeout(() => {
             removeTyping(typingId);
-            addMessage(replyText, 'friend');
-          }, 20000); // 20s typing
-        }, 10000); // after 10s delay
+            const reply = generateAIReply(text);
+            addMessage(reply, 'friend');
+          }, 20000);
+        }, 2000);
       }
     }
 
-    function addMessage(text, sender) {
-      const msgWrapper = document.createElement('div');
-      msgWrapper.className = `message ${sender}`;
+    function addMessage(text, sender, msgId) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `message ${sender}`;
 
       if (sender === 'friend') {
         const img = document.createElement('img');
-        img.src = friendPFP;
+        img.src = 'p1.jpg';
         img.className = 'pfp';
-        msgWrapper.appendChild(img);
+        wrapper.appendChild(img);
       }
 
       const msg = document.createElement('div');
       msg.className = 'msg-text';
       msg.textContent = text;
-      msgWrapper.appendChild(msg);
-      chat.appendChild(msgWrapper);
+      wrapper.appendChild(msg);
+
+      if (sender === 'you') {
+        const status = document.createElement('div');
+        status.className = 'status';
+        status.id = `status-${msgId}`;
+        status.textContent = '✓';
+        wrapper.appendChild(status);
+      }
+
+      chat.appendChild(wrapper);
       chat.scrollTop = chat.scrollHeight;
+    }
+
+    function updateStatus(id, symbol, color) {
+      const status = document.getElementById(`status-${id}`);
+      if (status) {
+        status.textContent = symbol;
+        status.style.color = color;
+      }
     }
 
     function showTyping() {
@@ -166,7 +156,7 @@
       wrapper.id = typingId;
 
       const img = document.createElement('img');
-      img.src = friendPFP;
+      img.src = 'p1.jpg';
       img.className = 'pfp';
 
       const msg = document.createElement('div');
@@ -185,31 +175,24 @@
       if (typing) typing.remove();
     }
 
-    function generateFayamaResponse(userText) {
-      if (userText.includes("money")) {
-        return "Anything you need baby, just tell me 😘 I got you.";
-      }
-      if (userText.includes("job")) {
-        return "You don’t need to work, just be mine ❤️";
-      }
-      if (userText.includes("date")) {
-        return "Just say the word Fayama... I’ll be ready, heels and all 💋";
-      }
-      if (userText.includes("miss")) {
-        return "I've been missing you like crazy Fayama 😩";
-      }
-      if (userText.includes("come") || userText.includes("visit")) {
-        return "I’ll come right now if you just say it 😭";
-      }
+    function generateAIReply(input) {
+      const lc = input.toLowerCase();
+      if (lc.includes('hello') || lc.includes('hi')) return 'Yes Fayama 😊';
+      if (lc.includes('how are you')) return "I'm well, maybe Youu? 😘";
+      if (lc.includes('i love you')) return "I love you much much more, you that Fayama 💖";
+      if (lc.includes('money')) return "Just tell me what you want baby, I'll send it right now 😘";
+      if (lc.includes('job')) return "You don’t need to work, just be mine and I’ll handle the rest 😘";
+      if (lc.includes('miss')) return "I’ve been missing you more than words Fayama 😩";
+      if (lc.includes('date')) return "Tell me when and where, I’ll be there looking perfect just for you 💋";
+      if (lc.includes('come') || lc.includes('visit')) return "Say the word and I’m on my way 😭";
       return [
-        "You texting me? My heart is racing 😭",
-        "I've been waiting for you to talk to me again 🥺",
-        "I can’t even explain what I feel for you anymore 💞",
-        "You’re all I want Fayama, always have been 😘",
-        "Don't ignore me again, I beg 😔"
+        "You're finally talking to me, my heart is jumping 🥺",
+        "I’ve waited so long to see your message 😘",
+        "Please don’t leave me again Fayama 😩",
+        "You're everything I’ve ever wanted 💞",
+        "Why do you make me fall deeper every time 😔"
       ][Math.floor(Math.random() * 5)];
     }
   </script>
-
 </body>
 </html>
