@@ -2,21 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Fake Message Web</title>
+  <title>Fake Chat</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f4f4f4;
+      padding: 30px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 30px;
     }
 
     #chat {
-      width: 360px;
+      width: 380px;
       height: 500px;
-      background: white;
+      background: #fff;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       overflow-y: auto;
@@ -26,20 +26,41 @@
     }
 
     .message {
+      display: flex;
+      align-items: flex-end;
       margin: 8px 0;
-      padding: 8px 12px;
-      border-radius: 20px;
-      max-width: 70%;
+      max-width: 80%;
     }
 
     .you {
-      background-color: #d1f0ff;
       align-self: flex-end;
+      justify-content: flex-end;
+      text-align: right;
     }
 
     .friend {
-      background-color: #e4e4e4;
       align-self: flex-start;
+    }
+
+    .msg-text {
+      padding: 10px 14px;
+      border-radius: 20px;
+      max-width: 250px;
+    }
+
+    .you .msg-text {
+      background-color: #d1f0ff;
+    }
+
+    .friend .msg-text {
+      background-color: #e4e4e4;
+      margin-left: 10px;
+    }
+
+    .pfp {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
     }
 
     #inputArea {
@@ -77,11 +98,20 @@
   <div id="inputArea">
     <input type="text" id="messageInput" placeholder="Type a message..." />
     <button onclick="sendMessage()">Send</button>
-    <button onclick="receiveMessage()">Receive</button>
   </div>
 
   <script>
     const chat = document.getElementById('chat');
+
+    // --- Define replies based on trigger words ---
+    const replyTriggers = {
+      "hello": "Hey! Long time no see 😊",
+      "how are you": "I'm doing great, thanks for asking!",
+      "bye": "Talk to you later!",
+      "joke": "Why don’t scientists trust atoms? Because they make up everything. 😄",
+    };
+
+    const friendPFP = "https://i.imgur.com/1XxBf7X.png"; // Change to your preferred image URL
 
     function sendMessage() {
       const input = document.getElementById('messageInput');
@@ -89,29 +119,69 @@
       if (text !== '') {
         addMessage(text, 'you');
         input.value = '';
+
+        // Check for trigger
+        const lowerText = text.toLowerCase();
+        const matchedKey = Object.keys(replyTriggers).find(key => lowerText.includes(key));
+
+        if (matchedKey) {
+          // After 10s, show "typing..."
+          setTimeout(() => {
+            const typingId = showTyping();
+
+            // After 20s more (30s total), replace typing with message
+            setTimeout(() => {
+              removeTyping(typingId);
+              addMessage(replyTriggers[matchedKey], 'friend');
+            }, 20000);
+          }, 10000);
+        }
       }
     }
 
-    function receiveMessage() {
-      const fakeReplies = [
-        "Hey! What's up?",
-        "Lol 😂",
-        "I’ll get back to you.",
-        "That’s cool.",
-        "Are you free later?",
-        "Why did you say that?",
-        "No way!"
-      ];
-      const randomReply = fakeReplies[Math.floor(Math.random() * fakeReplies.length)];
-      addMessage(randomReply, 'friend');
+    function addMessage(text, sender) {
+      const msgWrapper = document.createElement('div');
+      msgWrapper.className = `message ${sender}`;
+
+      if (sender === 'friend') {
+        const img = document.createElement('img');
+        img.src = friendPFP;
+        img.className = 'pfp';
+        msgWrapper.appendChild(img);
+      }
+
+      const msg = document.createElement('div');
+      msg.className = 'msg-text';
+      msg.textContent = text;
+      msgWrapper.appendChild(msg);
+      chat.appendChild(msgWrapper);
+      chat.scrollTop = chat.scrollHeight;
     }
 
-    function addMessage(text, sender) {
-      const message = document.createElement('div');
-      message.className = `message ${sender}`;
-      message.textContent = text;
-      chat.appendChild(message);
+    function showTyping() {
+      const typingId = `typing-${Date.now()}`;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'message friend';
+      wrapper.id = typingId;
+
+      const img = document.createElement('img');
+      img.src = friendPFP;
+      img.className = 'pfp';
+
+      const msg = document.createElement('div');
+      msg.className = 'msg-text';
+      msg.textContent = 'Typing...';
+
+      wrapper.appendChild(img);
+      wrapper.appendChild(msg);
+      chat.appendChild(wrapper);
       chat.scrollTop = chat.scrollHeight;
+      return typingId;
+    }
+
+    function removeTyping(id) {
+      const typing = document.getElementById(id);
+      if (typing) typing.remove();
     }
   </script>
 
