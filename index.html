@@ -2,22 +2,61 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Chat with Fayama</title>
+  <title>Fayama Chat</title>
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background-color: #ece5dd;
+      display: flex;
+      height: 100vh;
+    }
+    #sidebar {
+      width: 300px;
+      background-color: #fff;
+      border-right: 1px solid #ccc;
+      overflow-y: auto;
+    }
+    .contact {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+    .contact:hover {
+      background-color: #f5f5f5;
+    }
+    .contact img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    .contact-name {
+      font-weight: bold;
+    }
+    #chat-container {
+      flex-grow: 1;
       display: flex;
       flex-direction: column;
+      height: 100%;
+    }
+    #header {
+      background-color: #f0f0f0;
+      padding: 10px;
+      display: flex;
       align-items: center;
-      padding: 30px;
+      border-bottom: 1px solid #ccc;
+    }
+    #header img {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      margin-right: 10px;
     }
     #chat {
-      width: 400px;
-      height: 500px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      flex-grow: 1;
       padding: 10px;
       overflow-y: auto;
       display: flex;
@@ -41,16 +80,15 @@
       padding: 10px 14px;
       border-radius: 20px;
       background-color: #e4e4e4;
-      max-width: 250px;
       position: relative;
     }
     .you .msg-text {
       background-color: #d1f0ff;
     }
-    .status {
+    .time {
       font-size: 10px;
+      color: #555;
       margin-top: 2px;
-      text-align: right;
     }
     .pfp {
       width: 32px;
@@ -60,10 +98,11 @@
     }
     #inputArea {
       display: flex;
-      margin-top: 10px;
-      gap: 10px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-top: 1px solid #ccc;
     }
-    input[type="text"] {
+    #messageInput {
       flex-grow: 1;
       padding: 10px;
       border-radius: 20px;
@@ -71,6 +110,7 @@
     }
     button {
       padding: 10px 15px;
+      margin-left: 10px;
       border: none;
       border-radius: 20px;
       background: #007bff;
@@ -83,144 +123,125 @@
   </style>
 </head>
 <body>
-  <h2>Chat with Fayama ❤️</h2>
+<div id="sidebar"></div>
+<div id="chat-container">
+  <div id="header"></div>
   <div id="chat"></div>
   <div id="inputArea">
     <input type="text" id="messageInput" placeholder="Type a message...">
     <button onclick="sendMessage()">Send</button>
   </div>
-  <script>
-    const chat = document.getElementById('chat');
+</div>
+<script>
+  const contacts = [
+    { name: 'Fayama ❤️', img: 'p1.jpg' },
+    { name: 'Linda', img: 'p2.jpg' },
+    { name: 'Sandra', img: 'p3.jpg' },
+    { name: 'Alice', img: 'p4.jpg' },
+    { name: 'Tracy', img: 'p5.jpg' },
+    { name: 'Shiru', img: 'p6.jpg' },
+    { name: 'Becky', img: 'p7.jpg' },
+    { name: 'Njeri', img: 'p8.jpg' },
+    { name: 'Catherine', img: 'p9.jpg' },
+    { name: 'Zippy', img: 'p10.jpg' }
+  ];
 
-    window.onload = () => {
-      const saved = localStorage.getItem('fayama_chat');
-      if (saved) chat.innerHTML = saved;
-    };
+  let currentUser = null;
+  const sidebar = document.getElementById('sidebar');
+  const header = document.getElementById('header');
+  const chat = document.getElementById('chat');
 
-    function persistChat() {
-      localStorage.setItem('fayama_chat', chat.innerHTML);
-    }
+  contacts.forEach(contact => {
+    const div = document.createElement('div');
+    div.className = 'contact';
+    div.innerHTML = `<img src="${contact.img}"><div><div class="contact-name">${contact.name}</div></div>`;
+    div.onclick = () => selectUser(contact);
+    sidebar.appendChild(div);
+  });
 
-    function sendMessage() {
-      const input = document.getElementById('messageInput');
-      const text = input.value.trim();
-      if (text !== '') {
-        const id = Date.now();
-        addMessage(text, 'you', id);
-        input.value = '';
-        setTimeout(() => updateStatus(id, '✓✓', 'blue'), 2000);
+  function selectUser(user) {
+    currentUser = user;
+    header.innerHTML = `<img src="${user.img}"><div><b>${user.name}</b></div>`;
+    loadChat();
+  }
 
-        setTimeout(() => {
-          const typingId = showTyping();
-          setTimeout(() => {
-            removeTyping(typingId);
-            const reply = generateDynamicReply(text);
-            addMessage(reply, 'friend');
-          }, 20000);
-        }, 2000);
-      }
-    }
+  function getTime() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
 
-    function addMessage(text, sender, msgId) {
-      const wrapper = document.createElement('div');
-      wrapper.className = `message ${sender}`;
+  function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+    if (!currentUser || !text) return;
+    const id = Date.now();
+    addMessage(text, 'you', getTime(), id);
+    input.value = '';
+    setTimeout(() => receiveTyping(id, text), 2000);
+  }
 
-      if (sender === 'friend') {
-        const img = document.createElement('img');
-        img.src = 'p1.jpg';
-        img.className = 'pfp';
-        wrapper.appendChild(img);
-      }
+  function addMessage(text, sender, time, msgId) {
+    const wrapper = document.createElement('div');
+    wrapper.className = `message ${sender}`;
 
-      const msg = document.createElement('div');
-      msg.className = 'msg-text';
-      msg.textContent = text;
-      wrapper.appendChild(msg);
-
-      if (sender === 'you') {
-        const status = document.createElement('div');
-        status.className = 'status';
-        status.id = `status-${msgId}`;
-        status.textContent = '✓';
-        wrapper.appendChild(status);
-      }
-
-      chat.appendChild(wrapper);
-      chat.scrollTop = chat.scrollHeight;
-      persistChat();
-    }
-
-    function updateStatus(id, symbol, color) {
-      const status = document.getElementById(`status-${id}`);
-      if (status) {
-        status.textContent = symbol;
-        status.style.color = color;
-        persistChat();
-      }
-    }
-
-    function showTyping() {
-      const typingId = `typing-${Date.now()}`;
-      const wrapper = document.createElement('div');
-      wrapper.className = 'message friend';
-      wrapper.id = typingId;
-
+    if (sender === 'friend') {
       const img = document.createElement('img');
-      img.src = 'p1.jpg';
+      img.src = currentUser.img;
       img.className = 'pfp';
-
-      const msg = document.createElement('div');
-      msg.className = 'msg-text';
-      msg.textContent = 'Typing...';
-
       wrapper.appendChild(img);
-      wrapper.appendChild(msg);
-      chat.appendChild(wrapper);
-      chat.scrollTop = chat.scrollHeight;
-      persistChat();
-      return typingId;
     }
 
-    function removeTyping(id) {
-      const typing = document.getElementById(id);
-      if (typing) typing.remove();
-      persistChat();
-    }
+    const msg = document.createElement('div');
+    msg.className = 'msg-text';
+    msg.innerHTML = `${text}<div class="time">${time}</div>`;
+    wrapper.appendChild(msg);
 
-    function generateDynamicReply(input) {
-      const love = [
-        "You're finally talking to me, my heart is jumping 🥺",
-        "You always make me smile, Fayama 😘",
-        "I missed your voice in my heart 💓",
-        "You’re the reason I wake up happy 🥰",
-        "Just seeing your message changes my day 💖"
-      ];
-      const give = [
-        "Just ask me anything, it's yours 💸",
-        "If it's for you, I’ll give without thinking 🫶",
-        "Don't even ask, it's already yours 😘",
-        "You're the only one who makes me want to give everything 💎"
-      ];
-      const family = [
-        "I've dreamt of our kids so many times 💭",
-        "We’d make such beautiful babies together 💕",
-        "I want to build a life and home with you 💍",
-        "Let’s make this forever, Fayama 🏡"
-      ];
+    chat.appendChild(wrapper);
+    chat.scrollTop = chat.scrollHeight;
+    saveChat();
+  }
 
-      input = input.toLowerCase();
-      if (input.includes("money") || input.includes("give")) return give[Math.floor(Math.random() * give.length)];
-      if (input.includes("love") || input.includes("miss")) return love[Math.floor(Math.random() * love.length)];
-      if (input.includes("date") || input.includes("children") || input.includes("wife") || input.includes("kids")) return family[Math.floor(Math.random() * family.length)];
-      return [
-        ...love,
-        ...give,
-        ...family,
-        "You're the one I’ve been waiting for 💖",
-        "Say you’re mine and I’ll be yours forever 💌",
-        "Don’t tease me Fayama, my heart can’t take it 😭"
-      ][Math.floor(Math.random() * 11)];
+  function receiveTyping(msgId, inputText) {
+    const typingId = `typing-${msgId}`;
+    const typing = document.createElement('div');
+    typing.className = 'message friend';
+    typing.id = typingId;
+    typing.innerHTML = `<img src="${currentUser.img}" class="pfp"><div class="msg-text">Typing...</div>`;
+    chat.appendChild(typing);
+    chat.scrollTop = chat.scrollHeight;
+
+    setTimeout(() => {
+      typing.remove();
+      const reply = generateReply(inputText);
+      addMessage(reply, 'friend', getTime());
+    }, 20000);
+  }
+
+  function generateReply(input) {
+    const responses = [
+      "I’ve missed you so much 💖",
+      "You always make my day brighter ✨",
+      "You’re the only one I care about, Fayama 😘",
+      "If only you knew how long I’ve waited for this moment 😢",
+      "Just thinking about you gives me butterflies 🦋",
+      "I’m so lucky to know you 💞",
+      "Please don’t ignore me again 😔",
+      "Can’t wait to hold you in my arms 💕",
+      "You’re my everything 💓"
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  function saveChat() {
+    if (currentUser) {
+      localStorage.setItem('chat_' + currentUser.name, chat.innerHTML);
     }
-  </script>
+  }
+
+  function loadChat() {
+    if (currentUser) {
+      chat.innerHTML = localStorage.getItem('chat_' + currentUser.name) || '';
+    }
+  }
+</script>
 </body>
 </html>
