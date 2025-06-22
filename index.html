@@ -4,16 +4,23 @@
   <meta charset="UTF-8">
   <title>Fayama Chat</title>
   <style>
+    :root {
+      --theme-color: #0a5;
+      --sender-bg: #dcf8c6;
+      --receiver-bg: #fff;
+      --sidebar-bg: #f8f9fa;
+      --chat-bg: #ece5dd;
+    }
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #ece5dd;
+      background-color: var(--chat-bg);
       display: flex;
       height: 100vh;
     }
     #sidebar {
       width: 300px;
-      background-color: #fff;
+      background-color: var(--sidebar-bg);
       border-right: 1px solid #ccc;
       overflow-y: auto;
     }
@@ -25,7 +32,7 @@
       cursor: pointer;
     }
     .contact:hover {
-      background-color: #f5f5f5;
+      background-color: #eaeaea;
     }
     .contact img {
       width: 40px;
@@ -48,12 +55,18 @@
       display: flex;
       align-items: center;
       border-bottom: 1px solid #ccc;
+      justify-content: space-between;
     }
     #header img {
       width: 36px;
       height: 36px;
       border-radius: 50%;
       margin-right: 10px;
+    }
+    #profileSettings {
+      font-size: 14px;
+      color: var(--theme-color);
+      cursor: pointer;
     }
     #chat {
       flex-grow: 1;
@@ -79,11 +92,11 @@
     .msg-text {
       padding: 10px 14px;
       border-radius: 20px;
-      background-color: #e4e4e4;
+      background-color: var(--receiver-bg);
       position: relative;
     }
     .you .msg-text {
-      background-color: #d1f0ff;
+      background-color: var(--sender-bg);
     }
     .time {
       font-size: 10px;
@@ -113,19 +126,28 @@
       margin-left: 10px;
       border: none;
       border-radius: 20px;
-      background: #007bff;
+      background: var(--theme-color);
       color: white;
       cursor: pointer;
     }
     button:hover {
-      background: #0056b3;
+      background: #037c4b;
+    }
+    #newContactBtn {
+      margin: 10px;
+      background: #28a745;
     }
   </style>
 </head>
 <body>
-<div id="sidebar"></div>
+<div id="sidebar">
+  <button id="newContactBtn" onclick="addNewContact()">+ New Contact</button>
+</div>
 <div id="chat-container">
-  <div id="header"></div>
+  <div id="header">
+    <div id="contactHeader"></div>
+    <div id="profileSettings" onclick="editProfile()">My Profile</div>
+  </div>
   <div id="chat"></div>
   <div id="inputArea">
     <input type="text" id="messageInput" placeholder="Type a message...">
@@ -148,20 +170,22 @@
 
   let currentUser = null;
   const sidebar = document.getElementById('sidebar');
-  const header = document.getElementById('header');
+  const contactHeader = document.getElementById('contactHeader');
   const chat = document.getElementById('chat');
 
-  contacts.forEach(contact => {
+  contacts.forEach(contact => addContactToSidebar(contact));
+
+  function addContactToSidebar(contact) {
     const div = document.createElement('div');
     div.className = 'contact';
     div.innerHTML = `<img src="${contact.img}"><div><div class="contact-name">${contact.name}</div></div>`;
     div.onclick = () => selectUser(contact);
     sidebar.appendChild(div);
-  });
+  }
 
   function selectUser(user) {
     currentUser = user;
-    header.innerHTML = `<img src="${user.img}"><div><b>${user.name}</b></div>`;
+    contactHeader.innerHTML = `<img src="${user.img}"><b>${user.name}</b>`;
     loadChat();
   }
 
@@ -182,19 +206,16 @@
   function addMessage(text, sender, time, msgId) {
     const wrapper = document.createElement('div');
     wrapper.className = `message ${sender}`;
-
     if (sender === 'friend') {
       const img = document.createElement('img');
       img.src = currentUser.img;
       img.className = 'pfp';
       wrapper.appendChild(img);
     }
-
     const msg = document.createElement('div');
     msg.className = 'msg-text';
     msg.innerHTML = `${text}<div class="time">${time}</div>`;
     wrapper.appendChild(msg);
-
     chat.appendChild(wrapper);
     chat.scrollTop = chat.scrollHeight;
     saveChat();
@@ -208,7 +229,6 @@
     typing.innerHTML = `<img src="${currentUser.img}" class="pfp"><div class="msg-text">Typing...</div>`;
     chat.appendChild(typing);
     chat.scrollTop = chat.scrollHeight;
-
     setTimeout(() => {
       typing.remove();
       const reply = generateReply(inputText);
@@ -217,7 +237,7 @@
   }
 
   function generateReply(input) {
-    const responses = [
+    const replies = [
       "I’ve missed you so much 💖",
       "You always make my day brighter ✨",
       "You’re the only one I care about, Fayama 😘",
@@ -228,7 +248,7 @@
       "Can’t wait to hold you in my arms 💕",
       "You’re my everything 💓"
     ];
-    return responses[Math.floor(Math.random() * responses.length)];
+    return replies[Math.floor(Math.random() * replies.length)];
   }
 
   function saveChat() {
@@ -241,6 +261,19 @@
     if (currentUser) {
       chat.innerHTML = localStorage.getItem('chat_' + currentUser.name) || '';
     }
+  }
+
+  function editProfile() {
+    alert("Profile editing coming soon!");
+  }
+
+  function addNewContact() {
+    const name = prompt("Enter contact name:");
+    if (!name) return;
+    const img = prompt("Enter image filename (e.g., p11.jpg):") || 'default.jpg';
+    const newContact = { name, img };
+    contacts.push(newContact);
+    addContactToSidebar(newContact);
   }
 </script>
 </body>
