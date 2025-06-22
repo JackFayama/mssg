@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Fake Chat</title>
+  <title>Fayama Chat</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -92,7 +92,7 @@
 </head>
 <body>
 
-  <h2>Fake Message Web</h2>
+  <h2>Chat with Fayama ❤️</h2>
   <div id="chat"></div>
 
   <div id="inputArea">
@@ -103,15 +103,14 @@
   <script>
     const chat = document.getElementById('chat');
 
-    // --- Define replies based on trigger words ---
-    const replyTriggers = {
-      "hello": "Hey! Long time no see 😊",
-      "how are you": "I'm doing great, thanks for asking!",
-      "bye": "Talk to you later!",
-      "joke": "Why don’t scientists trust atoms? Because they make up everything. 😄",
+    const hardcodedReplies = {
+      "hello": "Yes Fayama 😊",
+      "hi": "Yes Fayama 😊",
+      "how are you": "I'm well, maybe Youu? 😘",
+      "i love you": "I love you much much more, you that Fayama 💖"
     };
 
-    const friendPFP = "https://i.imgur.com/1XxBf7X.png"; // Change to your preferred image URL
+    const friendPFP = "P1.JPg"; // Profile pic of Fayama
 
     function sendMessage() {
       const input = document.getElementById('messageInput');
@@ -120,22 +119,24 @@
         addMessage(text, 'you');
         input.value = '';
 
-        // Check for trigger
         const lowerText = text.toLowerCase();
-        const matchedKey = Object.keys(replyTriggers).find(key => lowerText.includes(key));
+
+        const matchedKey = Object.keys(hardcodedReplies).find(key => lowerText.includes(key));
+        let replyText;
 
         if (matchedKey) {
-          // After 10s, show "typing..."
-          setTimeout(() => {
-            const typingId = showTyping();
-
-            // After 20s more (30s total), replace typing with message
-            setTimeout(() => {
-              removeTyping(typingId);
-              addMessage(replyTriggers[matchedKey], 'friend');
-            }, 20000);
-          }, 10000);
+          replyText = hardcodedReplies[matchedKey];
+        } else {
+          replyText = generateFayamaResponse(lowerText);
         }
+
+        setTimeout(() => {
+          const typingId = showTyping();
+          setTimeout(() => {
+            removeTyping(typingId);
+            addMessage(replyText, 'friend');
+          }, 20000); // 20s typing
+        }, 10000); // after 10s delay
       }
     }
 
@@ -182,6 +183,31 @@
     function removeTyping(id) {
       const typing = document.getElementById(id);
       if (typing) typing.remove();
+    }
+
+    function generateFayamaResponse(userText) {
+      if (userText.includes("money")) {
+        return "Anything you need baby, just tell me 😘 I got you.";
+      }
+      if (userText.includes("job")) {
+        return "You don’t need to work, just be mine ❤️";
+      }
+      if (userText.includes("date")) {
+        return "Just say the word Fayama... I’ll be ready, heels and all 💋";
+      }
+      if (userText.includes("miss")) {
+        return "I've been missing you like crazy Fayama 😩";
+      }
+      if (userText.includes("come") || userText.includes("visit")) {
+        return "I’ll come right now if you just say it 😭";
+      }
+      return [
+        "You texting me? My heart is racing 😭",
+        "I've been waiting for you to talk to me again 🥺",
+        "I can’t even explain what I feel for you anymore 💞",
+        "You’re all I want Fayama, always have been 😘",
+        "Don't ignore me again, I beg 😔"
+      ][Math.floor(Math.random() * 5)];
     }
   </script>
 
