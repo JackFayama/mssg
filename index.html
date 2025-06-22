@@ -92,6 +92,15 @@
   <script>
     const chat = document.getElementById('chat');
 
+    window.onload = () => {
+      const saved = localStorage.getItem('fayama_chat');
+      if (saved) chat.innerHTML = saved;
+    };
+
+    function persistChat() {
+      localStorage.setItem('fayama_chat', chat.innerHTML);
+    }
+
     function sendMessage() {
       const input = document.getElementById('messageInput');
       const text = input.value.trim();
@@ -99,14 +108,13 @@
         const id = Date.now();
         addMessage(text, 'you', id);
         input.value = '';
-
         setTimeout(() => updateStatus(id, '✓✓', 'blue'), 2000);
 
         setTimeout(() => {
           const typingId = showTyping();
           setTimeout(() => {
             removeTyping(typingId);
-            const reply = generateAIReply(text);
+            const reply = generateDynamicReply(text);
             addMessage(reply, 'friend');
           }, 20000);
         }, 2000);
@@ -139,6 +147,7 @@
 
       chat.appendChild(wrapper);
       chat.scrollTop = chat.scrollHeight;
+      persistChat();
     }
 
     function updateStatus(id, symbol, color) {
@@ -146,6 +155,7 @@
       if (status) {
         status.textContent = symbol;
         status.style.color = color;
+        persistChat();
       }
     }
 
@@ -167,31 +177,49 @@
       wrapper.appendChild(msg);
       chat.appendChild(wrapper);
       chat.scrollTop = chat.scrollHeight;
+      persistChat();
       return typingId;
     }
 
     function removeTyping(id) {
       const typing = document.getElementById(id);
       if (typing) typing.remove();
+      persistChat();
     }
 
-    function generateAIReply(input) {
-      const lc = input.toLowerCase();
-      if (lc.includes('hello') || lc.includes('hi')) return 'Yes Fayama 😊';
-      if (lc.includes('how are you')) return "I'm well, maybe Youu? 😘";
-      if (lc.includes('i love you')) return "I love you much much more, you that Fayama 💖";
-      if (lc.includes('money')) return "Just tell me what you want baby, I'll send it right now 😘";
-      if (lc.includes('job')) return "You don’t need to work, just be mine and I’ll handle the rest 😘";
-      if (lc.includes('miss')) return "I’ve been missing you more than words Fayama 😩";
-      if (lc.includes('date')) return "Tell me when and where, I’ll be there looking perfect just for you 💋";
-      if (lc.includes('come') || lc.includes('visit')) return "Say the word and I’m on my way 😭";
-      return [
+    function generateDynamicReply(input) {
+      const love = [
         "You're finally talking to me, my heart is jumping 🥺",
-        "I’ve waited so long to see your message 😘",
-        "Please don’t leave me again Fayama 😩",
-        "You're everything I’ve ever wanted 💞",
-        "Why do you make me fall deeper every time 😔"
-      ][Math.floor(Math.random() * 5)];
+        "You always make me smile, Fayama 😘",
+        "I missed your voice in my heart 💓",
+        "You’re the reason I wake up happy 🥰",
+        "Just seeing your message changes my day 💖"
+      ];
+      const give = [
+        "Just ask me anything, it's yours 💸",
+        "If it's for you, I’ll give without thinking 🫶",
+        "Don't even ask, it's already yours 😘",
+        "You're the only one who makes me want to give everything 💎"
+      ];
+      const family = [
+        "I've dreamt of our kids so many times 💭",
+        "We’d make such beautiful babies together 💕",
+        "I want to build a life and home with you 💍",
+        "Let’s make this forever, Fayama 🏡"
+      ];
+
+      input = input.toLowerCase();
+      if (input.includes("money") || input.includes("give")) return give[Math.floor(Math.random() * give.length)];
+      if (input.includes("love") || input.includes("miss")) return love[Math.floor(Math.random() * love.length)];
+      if (input.includes("date") || input.includes("children") || input.includes("wife") || input.includes("kids")) return family[Math.floor(Math.random() * family.length)];
+      return [
+        ...love,
+        ...give,
+        ...family,
+        "You're the one I’ve been waiting for 💖",
+        "Say you’re mine and I’ll be yours forever 💌",
+        "Don’t tease me Fayama, my heart can’t take it 😭"
+      ][Math.floor(Math.random() * 11)];
     }
   </script>
 </body>
