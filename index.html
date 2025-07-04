@@ -43,6 +43,16 @@
             display: none; /* WebKit */
         }
 
+        /* Hide main page scrollbars */
+        body {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* Internet Explorer 10+ */
+        }
+        
+        body::-webkit-scrollbar {
+            display: none; /* WebKit */
+        }
+
         /* Modal z-index hierarchy */
         .modal-base { z-index: 1000; }
         .modal-secondary { z-index: 1100; }
@@ -71,7 +81,8 @@
                 profile: false,
                 reviews: null,
                 myListings: false,
-                support: false
+                support: false,
+                terms: false
             }
         };
 
@@ -101,7 +112,7 @@
             }
         };
 
-        // Countries data with all worldwide countries
+        // Countries data
         const countries = [
             { name: "Afghanistan", code: "+93" },
             { name: "Albania", code: "+355" },
@@ -272,10 +283,55 @@
             { name: "Zimbabwe", code: "+263" }
         ];
 
-        // Valid transaction ID pattern: TG4 followed by 7 digits/letters
-        const validateTransactionId = (transactionId) => {
-            const pattern = /^TG4[A-Z0-9]{7}$/i;
-            return pattern.test(transactionId);
+        // Kenya counties and subcounties
+        const kenyaCounties = {
+            "Baringo": ["Baringo Central", "Baringo North", "Baringo South", "Eldama Ravine", "Mogotio", "Tiaty"],
+            "Bomet": ["Bomet Central", "Bomet East", "Chepalungu", "Konoin", "Sotik"],
+            "Bungoma": ["Bumula", "Kabuchai", "Kanduyi", "Kimilili", "Mt. Elgon", "Sirisia", "Tongaren", "Webuye East", "Webuye West"],
+            "Busia": ["Budalangi", "Butula", "Funyula", "Nambale", "Teso North", "Teso South"],
+            "Elgeyo-Marakwet": ["Keiyo North", "Keiyo South", "Marakwet East", "Marakwet West"],
+            "Embu": ["Manyatta", "Mbeere North", "Mbeere South", "Runyenjes"],
+            "Garissa": ["Balambala", "Dadaab", "Fafi", "Garissa Township", "Ijara", "Lagdera"],
+            "Homa Bay": ["Homa Bay Town", "Kabondo Kasipul", "Karachuonyo", "Kasipul", "Mbita", "Ndhiwa", "Rangwe", "Suba"],
+            "Isiolo": ["Isiolo North", "Isiolo South"],
+            "Kajiado": ["Kajiado Central", "Kajiado East", "Kajiado North", "Kajiado South", "Kajiado West"],
+            "Kakamega": ["Butere", "Kakamega Central", "Kakamega East", "Kakamega North", "Kakamega South", "Khwisero", "Lugari", "Lukuyani", "Lurambi", "Matete", "Mumias East", "Mumias West", "Navakholo"],
+            "Kericho": ["Ainamoi", "Belgut", "Bureti", "Kipkelion East", "Kipkelion West", "Soin/Sigowet"],
+            "Kiambu": ["Gatundu North", "Gatundu South", "Githunguri", "Juja", "Kabete", "Kiambaa", "Kiambu", "Kikuyu", "Limuru", "Ruiru", "Thika Town"],
+            "Kilifi": ["Ganze", "Kaloleni", "Kilifi North", "Kilifi South", "Magarini", "Malindi", "Rabai"],
+            "Kirinyaga": ["Kirinyaga Central", "Kirinyaga East", "Kirinyaga West", "Mwea"],
+            "Kisii": ["Bobasi", "Bomachoge Borabu", "Bomachoge Chache", "Bonchari", "Kitutu Chache North", "Kitutu Chache South", "Nyaribari Chache", "Nyaribari Masaba", "South Mugirango"],
+            "Kisumu": ["Kisumu Central", "Kisumu East", "Kisumu West", "Muhoroni", "Nyakach", "Nyando", "Seme"],
+            "Kitui": ["Kitui Central", "Kitui East", "Kitui Rural", "Kitui South", "Kitui West", "Mwingi Central", "Mwingi North", "Mwingi West"],
+            "Kwale": ["Kinango", "Lungalunga", "Matuga", "Msambweni"],
+            "Laikipia": ["Laikipia East", "Laikipia North", "Laikipia West"],
+            "Lamu": ["Lamu East", "Lamu West"],
+            "Machakos": ["Kathiani", "Machakos Town", "Masinga", "Matungulu", "Mavoko", "Mwala", "Yatta"],
+            "Makueni": ["Kaiti", "Kibwezi East", "Kibwezi West", "Kilome", "Makueni", "Mbooni"],
+            "Mandera": ["Banissa", "Lafey", "Mandera East", "Mandera North", "Mandera South", "Mandera West"],
+            "Marsabit": ["Laisamis", "Moyale", "North Horr", "Saku"],
+            "Meru": ["Buuri", "Igembe Central", "Igembe North", "Igembe South", "Imenti Central", "Imenti North", "Imenti South", "Tigania East", "Tigania West"],
+            "Migori": ["Awendo", "Kuria East", "Kuria West", "Mabera", "Ntimaru", "Rongo", "Suna East", "Suna West", "Uriri"],
+            "Mombasa": ["Changamwe", "Jomba", "Kisauni", "Likoni", "Mvita", "Nyali"],
+            "Murang'a": ["Gatanga", "Kahuro", "Kandara", "Kangema", "Kigumo", "Kiharu", "Mathioya", "Murang'a South"],
+            "Nairobi": ["Dagoretti North", "Dagoretti South", "Embakasi Central", "Embakasi East", "Embakasi North", "Embakasi South", "Embakasi West", "Kamukunji", "Kasarani", "Kibra", "Lang'ata", "Makadara", "Mathare", "Roysambu", "Ruaraka", "Starehe", "Westlands"],
+            "Nakuru": ["Bahati", "Gilgil", "Kuresoi North", "Kuresoi South", "Molo", "Naivasha", "Nakuru Town East", "Nakuru Town West", "Njoro", "Rongai", "Subukia"],
+            "Nandi": ["Aldai", "Chesumei", "Emgwen", "Mosop", "Nandi Hills", "Tinderet"],
+            "Narok": ["Narok East", "Narok North", "Narok South", "Narok West", "Transmara East", "Transmara West"],
+            "Nyamira": ["Borabu", "Manga", "Masaba North", "Nyamira North", "Nyamira South"],
+            "Nyandarua": ["Kinangop", "Kipipiri", "Ndaragwa", "Ol Joro Oirowa", "Ol Kalou"],
+            "Nyeri": ["Kieni", "Mathira", "Mukurweini", "Nyeri Town", "Othaya", "Tetu"],
+            "Samburu": ["Samburu Central", "Samburu East", "Samburu North"],
+            "Siaya": ["Alego Usonga", "Bondo", "Gem", "Rarieda", "Ugenya", "Ugunja"],
+            "Taita-Taveta": ["Mwatate", "Taveta", "Voi", "Wundanyi"],
+            "Tana River": ["Bura", "Galole", "Garsen"],
+            "Tharaka-Nithi": ["Chuka/Igambang'ombe", "Maara", "Tharaka"],
+            "Trans Nzoia": ["Cherangany", "Endebess", "Kiminini", "Kwanza", "Saboti"],
+            "Turkana": ["Loima", "Turkana Central", "Turkana East", "Turkana North", "Turkana South", "Turkana West"],
+            "Uasin Gishu": ["Ainabkoi", "Kapseret", "Kesses", "Moiben", "Soy", "Turbo"],
+            "Vihiga": ["Emuhaya", "Hamisi", "Luanda", "Sabatia", "Vihiga"],
+            "Wajir": ["Eldas", "Tarbaj", "Wajir East", "Wajir North", "Wajir South", "Wajir West"],
+            "West Pokot": ["Kacheliba", "Kapenguria", "Pokot South", "West Pokot"]
         };
 
         // Currency conversion
@@ -312,6 +368,11 @@
             return password.length >= 6;
         };
 
+        const validateTransactionId = (transactionId) => {
+            const pattern = /^TG4[A-Z0-9]{7}$/i;
+            return pattern.test(transactionId);
+        };
+
         // Email service
         const sendBookingConfirmation = async (bookingData) => {
             try {
@@ -334,6 +395,27 @@
                 return true;
             } catch (error) {
                 console.error('Email send failed:', error);
+                return false;
+            }
+        };
+
+        const sendUserRegistration = async (userData) => {
+            try {
+                await emailjs.send(
+                    'service_rql9o4s',
+                    'template_peg3eqo',
+                    {
+                        user_name: userData.name,
+                        user_email: userData.email,
+                        user_country: userData.country,
+                        user_phone: userData.phone,
+                        registration_date: new Date().toLocaleDateString()
+                    },
+                    'W0Zng8g6Zol6lMWU9'
+                );
+                return true;
+            } catch (error) {
+                console.error('User registration email failed:', error);
                 return false;
             }
         };
@@ -602,6 +684,12 @@
                                                 </svg>
                                                 <span>Support</span>
                                             </button>
+                                            <button onclick="showModal('terms')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                </svg>
+                                                <span>Terms & Conditions</span>
+                                            </button>
                                             <hr class="my-2 border-gray-100" />
                                             <button onclick="handleLogout()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                                 Logout
@@ -624,21 +712,14 @@
 
                     <!-- Mobile Search Bar -->
                     <div class="md:hidden border-t border-gray-200 px-3 py-3">
-                        <form onsubmit="handleSearchSubmit(event)" class="relative">
-                            <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                            </div>
-                            <input
-                                type="text"
-                                id="mobileSearchInput"
-                                value="${AppState.searchQuery}"
-                                oninput="handleSearch(this.value)"
-                                placeholder="Search destinations, hosts, or properties..."
-                                class="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                            />
-                        </form>
+                        <input
+                            type="text"
+                            id="mobileSearchInput"
+                            value="${AppState.searchQuery}"
+                            oninput="handleSearch(this.value)"
+                            placeholder="Search destinations, hosts, or properties..."
+                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        />
                     </div>
                 </header>
             `;
@@ -757,7 +838,7 @@
             const type = AppState.modals.auth;
             return `
                 <div class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center modal-base p-4">
-                    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm max-h-[90vh] scrollable-content overflow-y-auto">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm max-h-[80vh] scrollable-content overflow-y-auto">
                         <div class="p-6">
                             <div class="flex items-center justify-between mb-6">
                                 <h2 class="text-2xl font-bold text-gray-900">
@@ -975,6 +1056,12 @@
                                 </button>
                             </div>
 
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
+                                <p class="text-sm text-yellow-800 font-medium">
+                                    Note: Your listing must be verified by our field agents before being published live.
+                                </p>
+                            </div>
+
                             <form onsubmit="handleHostSubmit(event)" class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Property Name</label>
@@ -982,8 +1069,20 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                                    <input type="text" name="location" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="City, Area" />
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">County</label>
+                                    <select name="county" onchange="updateSubcounties(this)" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                                        <option value="">Select County</option>
+                                        ${Object.keys(kenyaCounties).map(county => `
+                                            <option value="${county}">${county}</option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Subcounty</label>
+                                    <select name="subcounty" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                                        <option value="">Select Subcounty</option>
+                                    </select>
                                 </div>
 
                                 <div>
@@ -992,12 +1091,25 @@
                                 </div>
 
                                 <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Number of Guests (Maximum 2)</label>
+                                    <select name="maxGuests" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                                        <option value="1">1 Guest</option>
+                                        <option value="2">2 Guests</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Direction Description</label>
+                                    <textarea name="directions" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Provide clear directions to your property"></textarea>
+                                </div>
+
+                                <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                                     <textarea name="description" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Describe your property"></textarea>
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Property Images</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Property Images</label>
                                     <input type="file" name="images" multiple accept="image/*" onchange="handleImageUpload(event)" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                                     <p class="text-xs text-gray-500 mt-1">Select multiple images</p>
                                     <div id="imagePreview" class="mt-2 grid grid-cols-2 gap-2"></div>
@@ -1074,6 +1186,16 @@
             if (!AppState.modals.booking) return '';
             
             const listing = AppState.modals.booking;
+            const today = new Date().toISOString().split('T')[0];
+            
+            const hostRules = [
+                "No smoking",
+                "No pets allowed",
+                "No parties or events",
+                "Check-in after 3:00 PM",
+                "Check-out before 11:00 AM"
+            ];
+            
             return `
                 <div class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center modal-base p-4">
                     <div class="bg-white rounded-xl shadow-xl w-full max-w-sm max-h-[90vh] scrollable-content overflow-y-auto">
@@ -1097,12 +1219,32 @@
                                 <form onsubmit="handleBookingSubmit(event, ${JSON.stringify(listing).replace(/"/g, '&quot;')})" class="space-y-4">
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Check-in</label>
-                                            <input type="date" name="checkIn" onchange="calculateNights()" required min="${new Date().toISOString().split('T')[0]}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Check-in Date</label>
+                                            <input type="date" name="checkIn" onchange="calculateNights()" required min="${today}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
-                                            <input type="date" name="checkOut" onchange="calculateNights()" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Check-out Date</label>
+                                            <input type="date" name="checkOut" onchange="calculateNights()" required min="${today}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Check-in Time</label>
+                                            <select name="checkInTime" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                                                <option value="15:00">3:00 PM</option>
+                                                <option value="16:00">4:00 PM</option>
+                                                <option value="17:00">5:00 PM</option>
+                                                <option value="18:00">6:00 PM</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Check-out Time</label>
+                                            <select name="checkOutTime" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                                                <option value="10:00">10:00 AM</option>
+                                                <option value="11:00">11:00 AM</option>
+                                                <option value="12:00">12:00 PM</option>
+                                            </select>
                                         </div>
                                     </div>
 
@@ -1113,6 +1255,28 @@
                                             <span id="nightsDisplay" class="text-xl font-semibold">1</span>
                                             <button type="button" onclick="changeNights(1)" class="bg-gray-200 hover:bg-gray-300 rounded-full w-10 h-10 flex items-center justify-center">+</button>
                                         </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Number of Guests (Maximum 2)</label>
+                                        <select name="guests" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                                            <option value="1">1 Guest</option>
+                                            <option value="2">2 Guests</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                        <h4 class="font-medium text-yellow-900 mb-2">Host Rules</h4>
+                                        <ul class="text-sm text-yellow-800 space-y-1">
+                                            ${hostRules.map(rule => `<li>• ${rule}</li>`).join('')}
+                                        </ul>
+                                    </div>
+
+                                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                        <h4 class="font-medium text-blue-900 mb-2">Directions</h4>
+                                        <p class="text-sm text-blue-800">
+                                            Located in ${listing.location}. Detailed directions will be provided after booking confirmation.
+                                        </p>
                                     </div>
 
                                     <div class="bg-blue-50 p-4 rounded-lg">
@@ -1127,7 +1291,7 @@
                                             Cancel
                                         </button>
                                         <button type="submit" class="flex-1 bg-rose-500 text-white py-2 px-4 rounded-lg hover:bg-rose-600 transition-colors">
-                                            Continue Booking
+                                            Booking
                                         </button>
                                     </div>
                                 </form>
@@ -1204,7 +1368,7 @@
             
             return `
                 <div class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center modal-base p-4">
-                    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm max-h-[80vh] scrollable-content overflow-y-auto">
                         <div class="p-6">
                             <div class="flex items-center justify-between mb-6">
                                 <h2 class="text-2xl font-bold text-gray-900">Support</h2>
@@ -1268,6 +1432,81 @@
             `;
         };
 
+        // Component: Terms & Conditions Modal
+        const TermsModal = () => {
+            if (!AppState.modals.terms) return '';
+            
+            return `
+                <div class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center modal-base p-4">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm max-h-[80vh] scrollable-content overflow-y-auto">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-2xl font-bold text-gray-900">Terms & Conditions</h2>
+                                <button onclick="closeModal('terms')" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div class="space-y-6 text-sm text-gray-700">
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-2">1. Booking & Payment Terms</h3>
+                                    <p class="mb-2">All payments must be completed in full before check-in. No partial payments or pay-on-arrival options are available.</p>
+                                    <p>Accepted payment methods include M-PESA and other mobile money services. Transaction IDs must be provided for verification.</p>
+                                </div>
+
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-2">2. Cancellation Policy</h3>
+                                    <p class="mb-2">Cancellations made 48 hours before check-in: Full refund minus 10% processing fee.</p>
+                                    <p class="mb-2">Cancellations made 24-48 hours before: 50% refund.</p>
+                                    <p>Cancellations made less than 24 hours before: No refund.</p>
+                                </div>
+
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-2">3. Guest Responsibilities</h3>
+                                    <p class="mb-2">Guests must respect property rules and local regulations. Any damages will be charged separately.</p>
+                                    <p>Maximum occupancy limits must be strictly observed. Smoking is prohibited unless explicitly allowed.</p>
+                                </div>
+
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-2">4. Host Obligations</h3>
+                                    <p class="mb-2">Hosts must provide accurate property descriptions and ensure cleanliness standards.</p>
+                                    <p>Properties must be available as booked with all advertised amenities functional.</p>
+                                </div>
+
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-2">5. Platform Policies</h3>
+                                    <p class="mb-2">Zuri Stays KE reserves the right to cancel bookings for safety or security reasons.</p>
+                                    <p>All users must provide accurate information and comply with verification requirements.</p>
+                                </div>
+
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-2">6. Dispute Resolution</h3>
+                                    <p class="mb-2">Disputes will be handled through our customer support team within 48 hours.</p>
+                                    <p>Escalated matters will be resolved according to Kenyan law and jurisdiction.</p>
+                                </div>
+
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-2">7. Privacy & Data Protection</h3>
+                                    <p class="mb-2">Personal information is protected according to Kenya's Data Protection Act.</p>
+                                    <p>Data is used solely for booking purposes and platform improvement.</p>
+                                </div>
+
+                                <div class="bg-rose-50 p-4 rounded-lg">
+                                    <p class="text-rose-800 font-medium">By using Zuri Stays KE, you agree to these terms and conditions. Last updated: January 2024.</p>
+                                </div>
+                            </div>
+
+                            <button onclick="closeModal('terms')" class="w-full mt-6 bg-rose-500 text-white py-2 px-4 rounded-lg hover:bg-rose-600 transition-colors">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
         // Main render function
         const render = () => {
             const app = document.getElementById('app');
@@ -1309,6 +1548,7 @@
                 ${MyListingsModal()}
                 ${ReviewsModal()}
                 ${SupportModal()}
+                ${TermsModal()}
             `;
         };
 
@@ -1328,6 +1568,21 @@
             const phoneInput = select.form.phone;
             if (phoneInput && code) {
                 phoneInput.value = code + ' ';
+            }
+        };
+
+        window.updateSubcounties = (select) => {
+            const county = select.value;
+            const subcountySelect = select.form.subcounty;
+            subcountySelect.innerHTML = '<option value="">Select Subcounty</option>';
+            
+            if (county && kenyaCounties[county]) {
+                kenyaCounties[county].forEach(subcounty => {
+                    const option = document.createElement('option');
+                    option.value = subcounty;
+                    option.textContent = subcounty;
+                    subcountySelect.appendChild(option);
+                });
             }
         };
 
@@ -1394,9 +1649,11 @@
             const newListing = {
                 id: Date.now().toString(),
                 name: data.name,
-                location: data.location,
+                location: `${data.subcounty}, ${data.county}`,
                 price: parseInt(data.price),
                 description: data.description,
+                directions: data.directions,
+                maxGuests: parseInt(data.maxGuests),
                 images: images,
                 features: features,
                 hostId: AppState.currentUser.id,
@@ -1452,6 +1709,10 @@
 
                 users.push(newUser);
                 setStorageItem(StorageKeys.USERS, users);
+                
+                // Send user registration email
+                await sendUserRegistration(newUser);
+                
                 handleLogin(newUser);
                 showSuccessModal('Account created successfully! Welcome to Zuri Stays KE.');
             }
@@ -1513,7 +1774,7 @@
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center modal-secondary p-4';
             modal.innerHTML = `
-                <div class="bg-white rounded-xl shadow-xl w-full max-w-sm max-h-[90vh] scrollable-content overflow-y-auto">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-sm max-h-[80vh] scrollable-content overflow-y-auto">
                     <div class="p-6">
                         <div class="flex items-center justify-between mb-6">
                             <h2 class="text-2xl font-bold text-gray-900">Payment</h2>
@@ -1574,7 +1835,7 @@
                             <form onsubmit="handlePaymentSubmit(event, ${JSON.stringify({listing, bookingData, nights, totalUSD, totalKES}).replace(/"/g, '&quot;')})">
                                 <div class="mb-4">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Transaction ID</label>
-                                    <input type="text" name="transactionId" required placeholder="Enter transaction ID (TG4 + 7 characters)" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                                    <input type="text" name="transactionId" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="TG4 followed by 7 characters" />
                                 </div>
 
                                 <div class="flex space-x-4">
@@ -1607,7 +1868,7 @@
             if (!validateTransactionId(transactionId)) {
                 button.innerHTML = originalText;
                 button.disabled = false;
-                showErrorModal('Invalid transaction ID. Must start with TG4 followed by 7 digits/letters.');
+                showErrorModal('Invalid transaction ID. Please enter a valid ID starting with TG4 followed by 7 characters.');
                 return;
             }
 
